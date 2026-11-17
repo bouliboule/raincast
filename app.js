@@ -153,6 +153,39 @@ $('locate').addEventListener('click', () => {
   );
 });
 
+// ---------- theme ----------
+
+const THEME_KEY = 'raincast.theme';
+const THEMES = ['auto', 'light', 'dark', 'eink'];
+const THEME_UI = {
+  auto: ['Thème : automatique', '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg>'],
+  light: ['Thème : clair', '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'],
+  dark: ['Thème : sombre', '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="currentColor"/></svg>'],
+  eink: ['Thème : e-ink', '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="2"/></svg>'],
+};
+const THEME_COLOR = { light: '#ffe14d', dark: '#1b1b1f', eink: '#ffffff' };
+
+function applyTheme(t) {
+  if (t === 'auto') delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = t;
+  const [label, icon] = THEME_UI[t];
+  $('theme').innerHTML = icon;
+  $('theme').setAttribute('aria-label', label);
+  $('theme').title = label;
+  const sys = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.querySelector('meta[name="theme-color"]').content = THEME_COLOR[t === 'auto' ? sys : t];
+}
+
+let theme = (() => { try { return localStorage.getItem(THEME_KEY); } catch { return null; } })();
+if (!THEMES.includes(theme)) theme = 'auto';
+applyTheme(theme);
+$('theme').addEventListener('click', () => {
+  theme = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length];
+  try { localStorage.setItem(THEME_KEY, theme); } catch {}
+  applyTheme(theme);
+});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => applyTheme(theme));
+
 $('place').addEventListener('click', () => { $('q').value = ''; $('results').innerHTML = ''; $('picker').showModal(); $('q').focus(); });
 $('refresh').addEventListener('click', load);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });

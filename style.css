@@ -16,18 +16,38 @@
   --bw: 3px;
   --sh: 5px;
 }
+/* Dark: follows the system when theme is "auto", or forced with data-theme="dark". */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1b1b1f;
-    --card: #2a2a30;
-    --ink: #f4f1e8;
-    --muted: #c9c5ba;
-    --line: #f4f1e8;
-    --shadow: #ffe14d;
-    --dry: #3a3a42;
-    --dry-ink: #f4f1e8;
+  :root:not([data-theme]) {
+    --bg: #1b1b1f; --card: #2a2a30; --ink: #f4f1e8; --muted: #c9c5ba;
+    --line: #f4f1e8; --shadow: #ffe14d; --dry: #3a3a42; --dry-ink: #f4f1e8;
   }
 }
+:root[data-theme="dark"] {
+  --bg: #1b1b1f; --card: #2a2a30; --ink: #f4f1e8; --muted: #c9c5ba;
+  --line: #f4f1e8; --shadow: #ffe14d; --dry: #3a3a42; --dry-ink: #f4f1e8;
+}
+
+/* E-ink: pure black and white, intensity shown as hatching density, no motion. */
+:root[data-theme="eink"] {
+  --bg: #ffffff; --card: #ffffff; --ink: #000000; --muted: #000000;
+  --line: #000000; --shadow: #000000; --dry: #ffffff; --dry-ink: #000000;
+  --lv2: repeating-linear-gradient(135deg, #000 0 2px, #fff 2px 9px);
+  --lv3: repeating-linear-gradient(135deg, #000 0 4px, #fff 4px 8px);
+  --lv4: #000000;
+  --on-light: #000000; --on-dark: #ffffff; --accent: #ffffff;
+}
+:root[data-theme="eink"] *, :root[data-theme="eink"] *::backdrop { transition: none !important; animation: none !important; }
+:root[data-theme="eink"] body { font-weight: 600; }
+/* Keep the drop readable on top of hatching. */
+:root[data-theme="eink"] .lv2 svg, :root[data-theme="eink"] .lv3 svg {
+  background: #fff; border: 2px solid #000; border-radius: 50%; padding: 3px; box-sizing: content-box;
+}
+:root[data-theme="eink"] .lv3 { color: #000; }
+:root[data-theme="eink"] .summary.lv2, :root[data-theme="eink"] .summary.lv3 { background: #fff; }
+:root[data-theme="eink"] .locate { background: #fff; }
+:root[data-theme="eink"] .summary.lv2 span, :root[data-theme="eink"] .summary.lv3 span { text-decoration: underline 3px; }
+:root[data-theme="eink"] dialog::backdrop { background: rgb(255 255 255 / .7); }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; }
@@ -131,3 +151,5 @@ dialog::backdrop { background: rgb(0 0 0 / .45); }
 
 .credit { margin-top: 28px; text-align: center; font-size: 12px; font-weight: 600; line-height: 1.5; }
 .credit a { color: inherit; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px; }
+
+.theme-btn { background: var(--card); color: var(--ink); }
