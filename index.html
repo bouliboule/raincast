@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Raincast</title>
+  <meta name="theme-color" content="#ffe14d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Raincast">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <button id="place" class="place box press" aria-label="Changer de lieu">
+        <span id="place-name">Choisir un lieu</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <button id="refresh" class="icon-btn box press" aria-label="Actualiser">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </header>
+
+    <section class="card box" id="card">
+      <h1 id="headline">Chargement…</h1>
+      <div class="times"><span id="t-start">--:--</span><span id="t-end">--:--</span></div>
+      <div class="slots" id="slots"></div>
+      <div class="ticks" id="ticks"></div>
+      <div class="summary" id="summary"></div>
+      <ol class="legend" id="legend">
+        <li><i class="lv1"></i>Sec</li>
+        <li><i class="lv2"></i>Faible</li>
+        <li><i class="lv3"></i>Modérée</li>
+        <li><i class="lv4"></i>Forte</li>
+      </ol>
+    </section>
+
+    <p class="meta" id="meta"></p>
+  </main>
+
+  <dialog id="picker">
+    <form method="dialog" class="picker">
+      <div class="picker-head">
+        <input id="q" type="search" placeholder="Rechercher une ville…" autocomplete="off" enterkeyhint="search">
+        <button value="cancel" class="icon-btn box press" aria-label="Fermer">✕</button>
+      </div>
+      <button type="button" id="locate" class="locate box press">📍 Ma position</button>
+      <ul id="results"></ul>
+    </form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
