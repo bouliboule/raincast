@@ -16,7 +16,8 @@ const store = {
 
 const hhmm = (dt, tz) => new Date(dt * 1000).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: tz });
 
-let place = store.get(STORE_KEY);
+const DEFAULT_PLACE = { name: 'Paris', lat: 48.8566, lon: 2.3522 };
+let place = store.get(STORE_KEY) || DEFAULT_PLACE;
 let timer;
 
 // ---------- rendering ----------
