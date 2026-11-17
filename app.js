@@ -1,7 +1,7 @@
 import { getRain, searchPlaces } from './api.js';
+import { t, getLang, setLang, applyStatic } from './i18n.js';
 
 const $ = (id) => document.getElementById(id);
-const LEVELS = { 1: 'Temps sec', 2: 'Pluie faible', 3: 'Pluie modérée', 4: 'Pluie forte' };
 const REFRESH_MS = 5 * 60 * 1000;
 const STORE_KEY = 'raincast.place';
 const CACHE_KEY = 'raincast.last';
@@ -14,33 +14,35 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
 };
 
-const hhmm = (dt, tz) => new Date(dt * 1000).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: tz });
+const hhmm = (dt, tz) => new Date(dt * 1000).toLocaleTimeString(t('locale'), { hour: '2-digit', minute: '2-digit', timeZone: tz });
 
 const DEFAULT_PLACE = { name: 'Paris', lat: 48.8566, lon: 2.3522 };
 let place = store.get(STORE_KEY) || DEFAULT_PLACE;
 let timer;
+let lastRender = null; // { data, stale } — re-rendered when the language changes
 
 // ---------- rendering ----------
 
 function headline(fc, tz) {
   const wet = fc.map((f) => f.rain > 1);
-  if (!wet.some(Boolean)) return 'Pas de pluie prévue dans l’heure';
+  if (!wet.some(Boolean)) return t('noRain');
   if (wet[0]) {
     const stop = wet.indexOf(false);
-    if (stop === -1) return 'Pluie pendant toute l’heure';
-    return `Pluie jusqu’à ${hhmm(fc[stop].dt, tz)}`;
+    if (stop === -1) return t('rainAllHour');
+    return t('rainUntil')(hhmm(fc[stop].dt, tz));
   }
-  return `Pluie à partir de ${hhmm(fc[wet.indexOf(true)].dt, tz)}`;
+  return t('rainFrom')(hhmm(fc[wet.indexOf(true)].dt, tz));
 }
 
 function render(data, { stale = false } = {}) {
+  lastRender = { data, stale };
   const { position: pos, forecast: fc, updated_on } = data;
   const tz = pos.timezone || 'Europe/Paris';
   const card = $('card');
 
   if (!pos.rain_product_available) {
     card.classList.add('unavailable');
-    $('headline').textContent = 'Prévision de pluie dans l’heure non disponible ici';
+    $('headline').textContent = t('unavailable');
   } else {
     card.classList.remove('unavailable');
     $('headline').textContent = headline(fc, tz);
@@ -56,7 +58,7 @@ function render(data, { stale = false } = {}) {
   $('t-end').textContent = hhmm(end, tz);
 
   $('slots').innerHTML = fc.map((f, i) =>
-    `<div class="slot lv${f.rain}" style="flex:${durs[i]}" title="${hhmm(f.dt, tz)} · ${f.desc}">${f.rain > 1 ? DROP : DRY}</div>`
+    `<div class="slot lv${f.rain}" style="flex:${durs[i]}" title="${hhmm(f.dt, tz)} · ${t('levels')[f.rain]}">${f.rain > 1 ? DROP : DRY}</div>`
   ).join('');
 
   // Tick labels at the boundaries between slots (minutes from start).
@@ -69,14 +71,15 @@ function render(data, { stale = false } = {}) {
   const max = Math.max(...fc.map((f) => f.rain));
   const sum = $('summary');
   sum.className = `summary lv${max}`;
-  sum.innerHTML = `${max > 1 ? DROP : DRY}<span>${max > 1 ? LEVELS[max] : 'Temps sec'}</span>`;
+  sum.innerHTML = `${max > 1 ? DROP : DRY}<span>${t('levels')[max]}</span>`;
 
   const upd = hhmm(updated_on, tz);
-  $('meta').textContent = `${pos.name}${pos.dept ? ` (${pos.dept})` : ''} · mis à jour à ${upd}${stale ? ' · hors ligne' : ''}`;
+  $('meta').textContent = `${pos.name}${pos.dept ? ` (${pos.dept})` : ''} · ${t('updatedAt')(upd)}${stale ? ` · ${t('offline')}` : ''}`;
 }
 
-function renderError(msg) {
-  $('headline').textContent = msg;
+function renderError(key) {
+  lastRender = { error: key };
+  $('headline').textContent = t(key);
 }
 
 // ---------- data ----------
@@ -84,7 +87,7 @@ function renderError(msg) {
 async function load() {
   clearTimeout(timer);
   if (!place) {
-    $('headline').textContent = 'Choisissez un lieu';
+    $('headline').textContent = t('pickPlace');
     $('picker').showModal();
     return;
   }
@@ -97,7 +100,7 @@ async function load() {
   } catch (e) {
     const last = store.get(CACHE_KEY);
     if (last && last.place.lat === place.lat && last.place.lon === place.lon) render(last.data, { stale: true });
-    else renderError('Impossible de récupérer la prévision');
+    else renderError('fetchError');
   } finally {
     document.body.classList.remove('loading');
     timer = setTimeout(load, REFRESH_MS);
@@ -126,7 +129,7 @@ $('q').addEventListener('input', () => {
       if (seq !== searchSeq) return;
       $('results').innerHTML = list.length
         ? list.map((p, i) => `<li><button type="button" data-i="${i}">${p.name}<small>${p.postCode ?? p.admin2 ?? ''} · ${p.admin ?? ''}</small></button></li>`).join('')
-        : '<li class="empty">Aucun résultat en France</li>';
+        : `<li class="empty">${t('noResults')}</li>`;
       $('results').onclick = (ev) => {
         const b = ev.target.closest('button[data-i]');
         if (!b) return;
@@ -139,16 +142,16 @@ $('q').addEventListener('input', () => {
 
 $('locate').addEventListener('click', () => {
   if (!navigator.geolocation) return;
-  $('locate').textContent = '📍 Localisation…';
+  $('locate').textContent = t('locating');
   navigator.geolocation.getCurrentPosition(
     async ({ coords }) => {
       const lat = +coords.latitude.toFixed(4), lon = +coords.longitude.toFixed(4);
-      let name = 'Ma position';
+      let name = t('myLocationName');
       try { name = (await getRain(lat, lon)).position.name || name; } catch {}
-      $('locate').textContent = '📍 Ma position';
+      $('locate').textContent = t('myLocation');
       setPlace({ name, lat, lon });
     },
-    () => { $('locate').textContent = '📍 Position refusée'; },
+    () => { $('locate').textContent = t('locationDenied'); },
     { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 },
   );
 });
@@ -158,22 +161,23 @@ $('locate').addEventListener('click', () => {
 const THEME_KEY = 'raincast.theme';
 const THEMES = ['auto', 'light', 'dark', 'eink'];
 const THEME_UI = {
-  auto: ['Thème : automatique', '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg>'],
-  light: ['Thème : clair', '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'],
-  dark: ['Thème : sombre', '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="currentColor"/></svg>'],
-  eink: ['Thème : e-ink', '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="2"/></svg>'],
+  auto: ['<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg>'],
+  light: ['<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'],
+  dark: ['<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="currentColor"/></svg>'],
+  eink: ['<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="2"/></svg>'],
 };
 const THEME_COLOR = { light: '#ffe14d', dark: '#1b1b1f', eink: '#ffffff' };
 
-function applyTheme(t) {
-  if (t === 'auto') delete document.documentElement.dataset.theme;
-  else document.documentElement.dataset.theme = t;
-  const [label, icon] = THEME_UI[t];
+function applyTheme(th) {
+  if (th === 'auto') delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = th;
+  const [icon] = THEME_UI[th];
+  const label = t('themes')[th];
   $('theme').innerHTML = icon;
   $('theme').setAttribute('aria-label', label);
   $('theme').title = label;
   const sys = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  document.querySelector('meta[name="theme-color"]').content = THEME_COLOR[t === 'auto' ? sys : t];
+  document.querySelector('meta[name="theme-color"]').content = THEME_COLOR[th === 'auto' ? sys : th];
 }
 
 let theme = (() => { try { return localStorage.getItem(THEME_KEY); } catch { return null; } })();
@@ -185,6 +189,22 @@ $('theme').addEventListener('click', () => {
   applyTheme(theme);
 });
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => applyTheme(theme));
+
+// ---------- language ----------
+
+function applyLang() {
+  applyStatic();
+  applyTheme(theme);
+  if (place) $('place-name').textContent = place.name;
+  if (lastRender?.data) render(lastRender.data, { stale: lastRender.stale });
+  else if (lastRender?.error) renderError(lastRender.error);
+}
+document.querySelectorAll('[data-lang]').forEach((b) => b.addEventListener('click', () => {
+  if (b.dataset.lang === getLang()) return;
+  setLang(b.dataset.lang);
+  applyLang();
+}));
+applyLang();
 
 $('place').addEventListener('click', () => { $('q').value = ''; $('results').innerHTML = ''; $('picker').showModal(); $('q').focus(); });
 $('refresh').addEventListener('click', load);

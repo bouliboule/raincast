@@ -23,12 +23,12 @@
 <body>
   <main>
     <header>
-      <button id="place" class="place box press" aria-label="Changer de lieu">
-        <span id="place-name">Choisir un lieu</span>
+      <button id="place" class="place box press" aria-label="Changer de lieu" data-i18n-aria="changePlace">
+        <span id="place-name" data-i18n="choosePlace">Choisir un lieu</span>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       </button>
       <button id="theme" class="icon-btn theme-btn box press" aria-label="Thème"></button>
-      <button id="refresh" class="icon-btn box press" aria-label="Actualiser">
+      <button id="refresh" class="icon-btn box press" aria-label="Actualiser" data-i18n-aria="refresh">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
     </header>
@@ -40,28 +40,32 @@
       <div class="ticks" id="ticks"></div>
       <div class="summary" id="summary"></div>
       <ol class="legend" id="legend">
-        <li><i class="lv1"></i>Sec</li>
-        <li><i class="lv2"></i>Faible</li>
-        <li><i class="lv3"></i>Modérée</li>
-        <li><i class="lv4"></i>Forte</li>
+        <li><i class="lv1"></i><span data-i18n="legendDry">Sec</span></li>
+        <li><i class="lv2"></i><span data-i18n="legendLight">Faible</span></li>
+        <li><i class="lv3"></i><span data-i18n="legendModerate">Modérée</span></li>
+        <li><i class="lv4"></i><span data-i18n="legendHeavy">Forte</span></li>
       </ol>
     </section>
 
     <p class="meta" id="meta"></p>
 
     <footer class="credit">
-      Données&nbsp;: <a href="https://meteofrance.com" target="_blank" rel="noopener">Météo-France</a><br>
-      Projet personnel, non affilié à Météo-France
+      <span data-i18n="dataCredit">Données&nbsp;:</span> <a href="https://meteofrance.com" target="_blank" rel="noopener">Météo-France</a><br>
+      <span data-i18n="notAffiliated">Projet personnel, non affilié à Météo-France</span>
+      <div class="lang-switch" role="group" aria-label="Langue / Language">
+        <button type="button" data-lang="fr" lang="fr">Français</button>
+        <button type="button" data-lang="en" lang="en">English</button>
+      </div>
     </footer>
   </main>
 
   <dialog id="picker">
     <form method="dialog" class="picker">
       <div class="picker-head">
-        <input id="q" type="search" placeholder="Rechercher une ville…" autocomplete="off" enterkeyhint="search">
-        <button value="cancel" class="icon-btn box press" aria-label="Fermer">✕</button>
+        <input id="q" type="search" placeholder="Rechercher une ville…" data-i18n-placeholder="searchPlaceholder" autocomplete="off" enterkeyhint="search">
+        <button value="cancel" class="icon-btn box press" aria-label="Fermer" data-i18n-aria="close">✕</button>
       </div>
-      <button type="button" id="locate" class="locate box press">📍 Ma position</button>
+      <button type="button" id="locate" class="locate box press" data-i18n="myLocation">📍 Ma position</button>
       <ul id="results"></ul>
     </form>
   </dialog>
