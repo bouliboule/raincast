@@ -1,5 +1,5 @@
-const VERSION = 'raincast-v5';
-const SHELL = ['./', 'index.html', 'style.css', 'app.js', 'api.js', 'i18n.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
+const VERSION = 'raincast-v6';
+const SHELL = ['./', 'index.html', 'style.css', 'app.js', 'api.js', 'i18n.js', 'weather.js', 'icons.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

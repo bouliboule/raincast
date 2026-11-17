@@ -26,6 +26,16 @@ const STRINGS = {
     dataCredit: 'Données :',
     notAffiliated: 'Projet personnel, non affilié à Météo-France',
     themes: { auto: 'Thème : automatique', light: 'Thème : clair', dark: 'Thème : sombre', eink: 'Thème : e-ink' },
+    outlook: 'Prévisions',
+    period: (id) => ({ morning: 'Matin', afternoon: 'Après-midi', evening: 'Soirée' }[id]),
+    tomorrow: 'Demain',
+    today: 'Aujourd’hui',
+    noPrecip: 'Sec',
+    sky: {
+      clear: 'Ensoleillé', clearNight: 'Ciel clair', mostlyClear: 'Peu nuageux', partly: 'Éclaircies', overcast: 'Couvert',
+      fog: 'Brouillard', drizzle: 'Bruine', rain: 'Pluie', showers: 'Averses', snow: 'Neige', thunder: 'Orages',
+    },
+    forecastCredit: 'Prévisions :',
   },
   en: {
     locale: 'en-GB',
@@ -54,6 +64,16 @@ const STRINGS = {
     dataCredit: 'Data:',
     notAffiliated: 'Personal project, not affiliated with Météo-France',
     themes: { auto: 'Theme: auto', light: 'Theme: light', dark: 'Theme: dark', eink: 'Theme: e-ink' },
+    outlook: 'Forecast',
+    period: (id) => ({ morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening' }[id]),
+    tomorrow: 'Tomorrow',
+    today: 'Today',
+    noPrecip: 'Dry',
+    sky: {
+      clear: 'Sunny', clearNight: 'Clear', mostlyClear: 'Mostly clear', partly: 'Partly cloudy', overcast: 'Overcast',
+      fog: 'Fog', drizzle: 'Drizzle', rain: 'Rain', showers: 'Showers', snow: 'Snow', thunder: 'Thunderstorms',
+    },
+    forecastCredit: 'Forecast:',
   },
 };
 

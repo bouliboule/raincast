@@ -1,5 +1,7 @@
 import { getRain, searchPlaces } from './api.js';
 import { t, getLang, setLang, applyStatic } from './i18n.js';
+import { getPeriods } from './weather.js';
+import { weatherIcon } from './icons.js';
 
 const $ = (id) => document.getElementById(id);
 const REFRESH_MS = 5 * 60 * 1000;
@@ -82,6 +84,43 @@ function renderError(key) {
   $('headline').textContent = t(key);
 }
 
+let lastPeriods = null;
+function renderPeriods(periods) {
+  lastPeriods = periods;
+  const box = $('outlook');
+  if (!periods?.length) { box.hidden = true; return; }
+  box.hidden = false;
+  const sky = t('sky');
+  $('periods').innerHTML = periods.map((p) => {
+    const desc = p.group === 'clear' && !p.isDay ? sky.clearNight : sky[p.group];
+    const temp = p.tMin === p.tMax ? `${p.tMax}°` : `${p.tMax}°<small> / ${p.tMin}°</small>`;
+    const mm = p.precip >= 0.1
+      ? `<span class="mm wet">${p.precip.toLocaleString(t('locale'))} mm</span>`
+      : `<span class="mm">${t('noPrecip')}</span>`;
+    return `<article class="period">
+      <span class="day">${p.tomorrow ? t('tomorrow') : t('today')}</span>
+      <span class="name">${t('period')(p.id)}</span>
+      ${weatherIcon(p.group, p.isDay)}
+      <span class="temp">${temp}</span>
+      <span class="sky">${desc}</span>
+      ${mm}
+    </article>`;
+  }).join('');
+}
+
+const PERIODS_KEY = 'raincast.periods';
+async function loadPeriods(p) {
+  try {
+    const periods = await getPeriods(p.lat, p.lon);
+    if (p !== place) return; // place changed meanwhile
+    store.set(PERIODS_KEY, { place: p, periods });
+    renderPeriods(periods);
+  } catch {
+    const last = store.get(PERIODS_KEY);
+    if (p === place) renderPeriods(last && last.place.lat === p.lat && last.place.lon === p.lon ? last.periods : null);
+  }
+}
+
 // ---------- data ----------
 
 async function load() {
@@ -93,6 +132,7 @@ async function load() {
   }
   $('place-name').textContent = place.name;
   document.body.classList.add('loading');
+  loadPeriods(place);
   try {
     const data = await getRain(place.lat, place.lon);
     store.set(CACHE_KEY, { place, data });
@@ -198,6 +238,7 @@ function applyLang() {
   if (place) $('place-name').textContent = place.name;
   if (lastRender?.data) render(lastRender.data, { stale: lastRender.stale });
   else if (lastRender?.error) renderError(lastRender.error);
+  if (lastPeriods) renderPeriods(lastPeriods);
 }
 document.querySelectorAll('[data-lang]').forEach((b) => b.addEventListener('click', () => {
   if (b.dataset.lang === getLang()) return;

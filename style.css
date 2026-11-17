@@ -158,3 +158,27 @@ dialog::backdrop { background: rgb(0 0 0 / .45); }
 .lang-switch button { padding: 5px 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; background: var(--card); color: var(--ink); }
 .lang-switch button + button { border-left: 2px solid var(--line); }
 .lang-switch button[aria-pressed="true"] { background: var(--ink); color: var(--card); }
+
+/* Morning / afternoon / evening outlook */
+.outlook { margin-top: 28px; }
+.outlook h2 {
+  display: inline-block; margin: 0 0 12px; padding: 3px 10px;
+  font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  background: var(--ink); color: var(--card);
+}
+.periods { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.period {
+  background: var(--card); border: var(--bw) solid var(--line); box-shadow: var(--sh) var(--sh) 0 var(--shadow);
+  padding: 10px 8px 12px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0;
+}
+.period .day { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.period .name { font-size: 15px; font-weight: 700; }
+.period svg { width: 48px; height: 48px; margin: 4px 0; }
+.period .temp { font-size: 22px; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.period .temp small { font-size: 14px; font-weight: 600; color: var(--muted); }
+.period .sky { font-size: 12px; font-weight: 600; line-height: 1.2; min-height: 2.4em; display: flex; align-items: center; }
+.period .mm { margin-top: 4px; font-size: 12px; font-weight: 700; padding: 1px 6px; border: 2px solid var(--line); }
+.period .mm.wet { background: var(--lv2); color: #111; }
+:root { --sun: #ffe14d; }
+:root[data-theme="eink"] { --sun: #ffffff; }
+:root[data-theme="eink"] .period .mm.wet { background: #000; color: #fff; }
